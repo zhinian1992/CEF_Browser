@@ -3,6 +3,19 @@
 
 #include "stdafx.h"
 #include "Browser.h"
+#include "include\cef_app.h"
+#include "cef\CefHandler.h"
+#include "cef\MyCefApp.h"
+#include <strsafe.h>
+#include <shlobj.h>
+
+#ifdef _DEBUG
+#pragma comment(lib, "lib\\Debug\\libcef.lib")
+#pragma comment(lib, "lib\\Debug\\libcef_dll_wrapper.lib")
+#else
+#pragma comment(lib, "lib\\Release\\libcef.lib")
+#pragma comment(lib, "lib\\Release\\libcef_dll_wrapper.lib")
+#endif
 
 #define MAX_LOADSTRING 100
 
@@ -10,6 +23,7 @@
 HINSTANCE hInst;                                // 当前实例
 WCHAR szTitle[MAX_LOADSTRING];                  // 标题栏文本
 WCHAR szWindowClass[MAX_LOADSTRING];            // 主窗口类名
+CefRefPtr<CCefHandler> g_handler;
 
 // 此代码模块中包含的函数的前向声明:
 ATOM                MyRegisterClass(HINSTANCE hInstance);
@@ -26,7 +40,24 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     UNREFERENCED_PARAMETER(lpCmdLine);
 
     // TODO: 在此处放置代码。
-
+	CefMainArgs main_args(hInstance);
+	CefRefPtr<CMyCefApp> app(new CMyCefApp);
+	int exit_code = CefExecuteProcess(main_args, app.get(), NULL);
+	if (exit_code >= 0) {
+		return exit_code;
+	}
+	CefSettings settings;
+	settings.multi_threaded_message_loop = true;
+	settings.ignore_certificate_errors = true;
+	settings.log_severity = LOGSEVERITY_DISABLE;
+	TCHAR szSpecialPath[MAX_PATH];
+	memset(szSpecialPath, '\0', sizeof(szSpecialPath));
+	if (FALSE != SHGetSpecialFolderPath(NULL, szSpecialPath, CSIDL_PROFILE, FALSE))
+	{
+		StringCbCat(szSpecialPath, sizeof(szSpecialPath), L"\\AppData\\Local\\Temp\\MyBrowser");
+		CefString(&settings.cache_path).FromString(szSpecialPath, sizeof(szSpecialPath) / 2, true);
+	}
+	CefInitialize(main_args, settings, app.get(), NULL);
     // 初始化全局字符串
     LoadStringW(hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
     LoadStringW(hInstance, IDC_BROWSER, szWindowClass, MAX_LOADSTRING);
@@ -38,21 +69,14 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
         return FALSE;
     }
 
-    HACCEL hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_BROWSER));
-
-    MSG msg;
-
-    // 主消息循环:
-    while (GetMessage(&msg, nullptr, 0, 0))
-    {
-        if (!TranslateAccelerator(msg.hwnd, hAccelTable, &msg))
-        {
-            TranslateMessage(&msg);
-            DispatchMessage(&msg);
-        }
-    }
-
-    return (int) msg.wParam;
+	MSG nMsg = { 0 };
+	while (GetMessage(&nMsg, NULL, 0, 0))
+	{
+		TranslateMessage(&nMsg);
+		DispatchMessage(&nMsg);
+	}
+	CefShutdown();
+	return 0;
 }
 
 
@@ -76,9 +100,9 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
     wcex.hIcon          = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_BROWSER));
     wcex.hCursor        = LoadCursor(nullptr, IDC_ARROW);
     wcex.hbrBackground  = (HBRUSH)(COLOR_WINDOW+1);
-    wcex.lpszMenuName   = MAKEINTRESOURCEW(IDC_BROWSER);
+    wcex.lpszMenuName   = NULL;
     wcex.lpszClassName  = szWindowClass;
-    wcex.hIconSm        = LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_SMALL));
+    wcex.hIconSm        = LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_BROWSER));
 
     return RegisterClassExW(&wcex);
 }
@@ -142,6 +166,16 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             }
         }
         break;
+	case WM_CREATE:
+		{
+			g_handler = new CCefHandler();
+			RECT rect;
+			::GetClientRect(hWnd, &rect);
+			std::string sURL = "www.baidu.com";
+			CefString cURL = sURL;
+			g_handler->CreateBrowser(hWnd, rect, cURL);
+		}
+		break;
     case WM_PAINT:
         {
             PAINTSTRUCT ps;
@@ -150,6 +184,17 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             EndPaint(hWnd, &ps);
         }
         break;
+	case WM_SIZE:
+		{
+		if (wParam == SIZE_MINIMIZED
+			|| g_handler == NULL
+			|| g_handler->GetBrowserHostWnd() == NULL)
+			break;
+			RECT rect;
+			::GetWindowRect(hWnd,&rect);
+			::SetWindowPos(g_handler->GetBrowserHostWnd(),NULL, 0, 0, rect.right - rect.left, rect.bottom - rect.top, SWP_SHOWWINDOW);
+		}
+		break;
     case WM_DESTROY:
         PostQuitMessage(0);
         break;

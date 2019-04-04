@@ -13,6 +13,9 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="CEF">
+      <UniqueIdentifier>{6814dde6-7bb6-43df-ae77-cbbc0149fc8c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -27,6 +30,18 @@
     <ClInclude Include="Browser.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="CEF\CefHandler.h">
+      <Filter>CEF</Filter>
+    </ClInclude>
+    <ClInclude Include="CEF\MyCefApp.h">
+      <Filter>CEF</Filter>
+    </ClInclude>
+    <ClInclude Include="CEF\util.h">
+      <Filter>CEF</Filter>
+    </ClInclude>
+    <ClInclude Include="CEF\V8handler.h">
+      <Filter>CEF</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -34,6 +49,15 @@
     </ClCompile>
     <ClCompile Include="Browser.cpp">
       <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="CEF\CefHandler.cpp">
+      <Filter>CEF</Filter>
+    </ClCompile>
+    <ClCompile Include="CEF\MyCefApp.cpp">
+      <Filter>CEF</Filter>
+    </ClCompile>
+    <ClCompile Include="CEF\V8handler.cpp">
+      <Filter>CEF</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
