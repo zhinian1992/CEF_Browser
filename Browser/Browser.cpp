@@ -10,11 +10,11 @@
 #include <shlobj.h>
 
 #ifdef _DEBUG
-#pragma comment(lib, "lib\\Debug\\libcef.lib")
-#pragma comment(lib, "lib\\Debug\\libcef_dll_wrapper.lib")
+#pragma comment(lib, "lib/Debug/libcef.lib")
+#pragma comment(lib, "lib/Debug/libcef_dll_wrapper.lib")
 #else
-#pragma comment(lib, "lib\\Release\\libcef.lib")
-#pragma comment(lib, "lib\\Release\\libcef_dll_wrapper.lib")
+#pragma comment(lib, "lib/Release/libcef.lib")
+#pragma comment(lib, "lib/Release/libcef_dll_wrapper.lib")
 #endif
 
 #define MAX_LOADSTRING 100
