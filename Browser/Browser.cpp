@@ -3,33 +3,22 @@
 
 #include "stdafx.h"
 #include "Browser.h"
-#include "include\cef_app.h"
-#include "cef\CefHandler.h"
-#include "cef\MyCefApp.h"
-#include <strsafe.h>
-#include <shlobj.h>
-
-#ifdef _DEBUG
-#pragma comment(lib, "lib/Debug/libcef.lib")
-#pragma comment(lib, "lib/Debug/libcef_dll_wrapper.lib")
-#else
-#pragma comment(lib, "lib/Release/libcef.lib")
-#pragma comment(lib, "lib/Release/libcef_dll_wrapper.lib")
-#endif
+#include "MainWndMsgHandler.h"
 
 #define MAX_LOADSTRING 100
+#define WINDOWCLASSNAME L"MyBrowser"			// 主窗口类名
+
 
 // 全局变量:
 HINSTANCE hInst;                                // 当前实例
-WCHAR szTitle[MAX_LOADSTRING];                  // 标题栏文本
-WCHAR szWindowClass[MAX_LOADSTRING];            // 主窗口类名
-CefRefPtr<CCefHandler> g_handler;
+
 
 // 此代码模块中包含的函数的前向声明:
 ATOM                MyRegisterClass(HINSTANCE hInstance);
 BOOL                InitInstance(HINSTANCE, int);
 LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
-INT_PTR CALLBACK    About(HWND, UINT, WPARAM, LPARAM);
+BOOL				InitCef(HINSTANCE hInstance);
+
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
                      _In_opt_ HINSTANCE hPrevInstance,
@@ -40,27 +29,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     UNREFERENCED_PARAMETER(lpCmdLine);
 
     // TODO: 在此处放置代码。
-	CefMainArgs main_args(hInstance);
-	CefRefPtr<CMyCefApp> app(new CMyCefApp);
-	int exit_code = CefExecuteProcess(main_args, app.get(), NULL);
-	if (exit_code >= 0) {
-		return exit_code;
-	}
-	CefSettings settings;
-	settings.multi_threaded_message_loop = true;
-	settings.ignore_certificate_errors = true;
-	settings.log_severity = LOGSEVERITY_DISABLE;
-	TCHAR szSpecialPath[MAX_PATH];
-	memset(szSpecialPath, '\0', sizeof(szSpecialPath));
-	if (FALSE != SHGetSpecialFolderPath(NULL, szSpecialPath, CSIDL_PROFILE, FALSE))
-	{
-		StringCbCat(szSpecialPath, sizeof(szSpecialPath), L"\\AppData\\Local\\Temp\\MyBrowser");
-		CefString(&settings.cache_path).FromString(szSpecialPath, sizeof(szSpecialPath) / 2, true);
-	}
-	CefInitialize(main_args, settings, app.get(), NULL);
-    // 初始化全局字符串
-    LoadStringW(hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
-    LoadStringW(hInstance, IDC_BROWSER, szWindowClass, MAX_LOADSTRING);
+	if(!InitCef(hInstance))
+		return 0;
+	
     MyRegisterClass(hInstance);
 
     // 执行应用程序初始化:
@@ -78,7 +49,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	CefShutdown();
 	return 0;
 }
-
 
 
 //
@@ -99,9 +69,9 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
     wcex.hInstance      = hInstance;
     wcex.hIcon          = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_BROWSER));
     wcex.hCursor        = LoadCursor(nullptr, IDC_ARROW);
-    wcex.hbrBackground  = (HBRUSH)(COLOR_WINDOW+1);
+    wcex.hbrBackground  = (HBRUSH)GetStockObject(BLACK_BRUSH); 
     wcex.lpszMenuName   = NULL;
-    wcex.lpszClassName  = szWindowClass;
+    wcex.lpszClassName  = WINDOWCLASSNAME;
     wcex.hIconSm        = LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_BROWSER));
 
     return RegisterClassExW(&wcex);
@@ -121,7 +91,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 {
    hInst = hInstance; // 将实例句柄存储在全局变量中
 
-   HWND hWnd = CreateWindowW(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW,
+   HWND hWnd = CreateWindowW(WINDOWCLASSNAME, NULL, WS_OVERLAPPEDWINDOW,
       CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, nullptr, nullptr, hInstance, nullptr);
 
    if (!hWnd)
@@ -147,79 +117,36 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 //
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-    switch (message)
-    {
-    case WM_COMMAND:
-        {
-            int wmId = LOWORD(wParam);
-            // 分析菜单选择:
-            switch (wmId)
-            {
-            case IDM_ABOUT:
-                DialogBox(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, About);
-                break;
-            case IDM_EXIT:
-                DestroyWindow(hWnd);
-                break;
-            default:
-                return DefWindowProc(hWnd, message, wParam, lParam);
-            }
-        }
-        break;
-	case WM_CREATE:
-		{
-			g_handler = new CCefHandler();
-			RECT rect;
-			::GetClientRect(hWnd, &rect);
-			std::string sURL = "www.baidu.com";
-			CefString cURL = sURL;
-			g_handler->CreateBrowser(hWnd, rect, cURL);
-		}
-		break;
-    case WM_PAINT:
-        {
-            PAINTSTRUCT ps;
-            HDC hdc = BeginPaint(hWnd, &ps);
-            // TODO: 在此处添加使用 hdc 的任何绘图代码...
-            EndPaint(hWnd, &ps);
-        }
-        break;
-	case WM_SIZE:
-		{
-		if (wParam == SIZE_MINIMIZED
-			|| g_handler == NULL
-			|| g_handler->GetBrowserHostWnd() == NULL)
-			break;
-			RECT rect;
-			::GetWindowRect(hWnd,&rect);
-			::SetWindowPos(g_handler->GetBrowserHostWnd(),NULL, 0, 0, rect.right - rect.left, rect.bottom - rect.top, SWP_SHOWWINDOW);
-		}
-		break;
-    case WM_DESTROY:
-        PostQuitMessage(0);
-        break;
-    default:
-        return DefWindowProc(hWnd, message, wParam, lParam);
-    }
-    return 0;
+	MainWndMsgHandler msgHandler;
+	return msgHandler.MainWndProc(hInst,hWnd,message,wParam,lParam);
 }
 
-// “关于”框的消息处理程序。
-INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
+//
+//  函数: InitCef(HINSTANCE)
+//
+//  目标: 初始化Cef。
+//
+BOOL InitCef(HINSTANCE hInstance)
 {
-    UNREFERENCED_PARAMETER(lParam);
-    switch (message)
-    {
-    case WM_INITDIALOG:
-        return (INT_PTR)TRUE;
+	CefMainArgs main_args(hInstance);
+	CefRefPtr<CMyCefApp> app(new CMyCefApp);
+	int exit_code = CefExecuteProcess(main_args, app.get(), NULL);
+	if (exit_code >= 0) {
+		return false;
+	}
+	CefSettings settings;
+	settings.multi_threaded_message_loop = true;
+	settings.ignore_certificate_errors = true;
+	settings.log_severity = LOGSEVERITY_DISABLE;
 
-    case WM_COMMAND:
-        if (LOWORD(wParam) == IDOK || LOWORD(wParam) == IDCANCEL)
-        {
-            EndDialog(hDlg, LOWORD(wParam));
-            return (INT_PTR)TRUE;
-        }
-        break;
-    }
-    return (INT_PTR)FALSE;
+	//设置缓存路径
+	TCHAR szSpecialPath[MAX_PATH];
+	memset(szSpecialPath, '\0', sizeof(szSpecialPath));
+	if (FALSE != SHGetSpecialFolderPath(NULL, szSpecialPath, CSIDL_PROFILE, FALSE))
+	{
+		StringCbCat(szSpecialPath, sizeof(szSpecialPath), L"\\AppData\\Local\\Temp\\MyBrowser");
+		CefString(&settings.cache_path).FromString(szSpecialPath, sizeof(szSpecialPath) / 2, true);
+	}
+
+	return CefInitialize(main_args, settings, app.get(), NULL);
 }
