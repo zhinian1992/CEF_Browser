@@ -1,5 +1,4 @@
 #include "stdafx.h"
-#include "resource.h"
 #include "MainWndMsgHandler.h"
 #include "SinglePageWnd.h"
 #include <windows.h>
@@ -31,7 +30,12 @@ MainWndMsgHandler::~MainWndMsgHandler()
 {
 }
 
-LRESULT CALLBACK MainWndMsgHandler::MainWndProc(HINSTANCE hInst,HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+//
+//  函数: MainWndProc(HINSTANCE, HWND, UINT, WPARAM, LPARAM)
+//
+//  目标: 处理浏览器主窗体消息。
+//
+LRESULT MainWndMsgHandler::MainWndProc(HINSTANCE hInst,HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	map<int, pMsgHandler>::iterator it;
 	for(it = m_FuncMap.begin();it != m_FuncMap.end();++it)
@@ -64,6 +68,11 @@ INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
     return (INT_PTR)FALSE;
 }
 
+//
+//  函数: CommandMsgHandler(HINSTANCE, HWND, UINT, WPARAM, LPARAM)
+//
+//  目标: 窗口菜单命令项，控件触发消息。
+//
 void MainWndMsgHandler::CommandMsgHandler(HINSTANCE hInst, HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	int wmId = LOWORD(wParam);
@@ -84,6 +93,16 @@ void MainWndMsgHandler::CommandMsgHandler(HINSTANCE hInst, HWND hWnd, UINT messa
 	return;
 }
 
+//
+//  函数: ActivateMsgHandler(HINSTANCE,HWND,UINT,WPARAM,LPARAM)
+//
+//  目标: 窗口激活消息响应函数。
+//
+//  注释:
+//
+//		  在此函数中frame extension扩展框架实现
+//		  窗体初始化和最大化时正确处理框架扩展。
+//
 void MainWndMsgHandler::ActivateMsgHandler(HINSTANCE hInst, HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	//extend the frame into the client area
@@ -105,10 +124,17 @@ void MainWndMsgHandler::ActivateMsgHandler(HINSTANCE hInst, HWND hWnd, UINT mess
 	return;
 }
 
+//
+//  函数: SizeMsgHandler(HINSTANCE,HWND,UINT,WPARAM,LPARAM)
+//
+//  目标: 窗口大小改变消息响应函数。
+//
+//  注释:
+//
+//		  在此函数中窗体大小改变时改变子窗体大小
+//
 void MainWndMsgHandler::SizeMsgHandler(HINSTANCE hInst, HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-	OutputDebugStringA("SizeMsgHandler");
-
 	RECT rect;
 	::GetWindowRect(hWnd,&rect);
 
@@ -121,6 +147,11 @@ void MainWndMsgHandler::SizeMsgHandler(HINSTANCE hInst, HWND hWnd, UINT message,
 	return;
 }
 
+//
+//  函数: PaintMsgHandler(HINSTANCE,HWND,UINT,WPARAM,LPARAM)
+//
+//  目标: 窗口绘制消息响应函数。
+//
 void MainWndMsgHandler::PaintMsgHandler(HINSTANCE hInst, HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	PAINTSTRUCT ps;
@@ -131,15 +162,23 @@ void MainWndMsgHandler::PaintMsgHandler(HINSTANCE hInst, HWND hWnd, UINT message
 	return;
 }
 
+//
+//  函数: CreateMsgHandler(HINSTANCE,HWND,UINT,WPARAM,LPARAM)
+//
+//  目标: 新窗口创建消息响应函数。
+//
 void MainWndMsgHandler::CreateMsgHandler(HINSTANCE hInst, HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-	OutputDebugStringA("CreateMsgHandler");
-
-	CreateNewPage(hInst,hWnd);
+	CreateBrowserPage(hInst,hWnd);
 
 	return;
 }
 
+//
+//  函数: DestroyMsgHandler(HINSTANCE,HWND,UINT,WPARAM,LPARAM)
+//
+//  目标: 窗口销毁消息响应函数。
+//
 void MainWndMsgHandler::DestroyMsgHandler(HINSTANCE hInst, HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	PostQuitMessage(0);
@@ -147,12 +186,17 @@ void MainWndMsgHandler::DestroyMsgHandler(HINSTANCE hInst, HWND hWnd, UINT messa
 	return;
 }
 
-void MainWndMsgHandler::CreateNewPage(HINSTANCE hInst,HWND hWnd)
+//
+//  函数: CreateBrowserPage(HINSTANCE,HWND)
+//
+//  目标: 浏览器页面创建消息响应函数。
+//
+void MainWndMsgHandler::CreateBrowserPage(HINSTANCE hInst,HWND hWnd)
 {
 	RECT rect;
 	::GetWindowRect(hWnd,&rect);
 
-	string sURL = "www.baidu.com";
+	const string sURL = "www.baidu.com";
 	SinglePageWnd *pageWnd = new SinglePageWnd(hInst,hWnd,
 		rect.right - rect.left,rect.bottom - rect.top,sURL);
 

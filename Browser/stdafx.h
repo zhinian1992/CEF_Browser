@@ -19,6 +19,8 @@
 
 
 // 在此处引用程序需要的其他标头
+#include "resource.h"
+
 #include <strsafe.h>
 #include <shlobj.h>
 #include <assert.h>

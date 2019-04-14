@@ -158,6 +158,7 @@
     <ClInclude Include="CEF\util.h" />
     <ClInclude Include="CEF\V8handler.h" />
     <ClInclude Include="MainWndMsgHandler.h" />
+    <ClInclude Include="PageWndMsgHandler.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="SinglePageWnd.h" />
     <ClInclude Include="stdafx.h" />
@@ -178,6 +179,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="MainWndMsgHandler.cpp" />
+    <ClCompile Include="PageWndMsgHandler.cpp" />
     <ClCompile Include="SinglePageWnd.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>

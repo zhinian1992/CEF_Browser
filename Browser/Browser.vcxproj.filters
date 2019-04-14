@@ -48,6 +48,9 @@
     <ClInclude Include="SinglePageWnd.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="PageWndMsgHandler.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -69,6 +72,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="SinglePageWnd.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="PageWndMsgHandler.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

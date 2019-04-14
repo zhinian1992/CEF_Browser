@@ -11,7 +11,7 @@
 
 // 全局变量:
 HINSTANCE hInst;                                // 当前实例
-MainWndMsgHandler *msgHandler;
+MainWndMsgHandler *msgHandler;					// 窗体消息处理实例
 
 
 // 此代码模块中包含的函数的前向声明:
@@ -94,7 +94,8 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 {
    hInst = hInstance; // 将实例句柄存储在全局变量中
 
-   HWND hWnd = CreateWindowW(WINDOWCLASSNAME, NULL, WS_OVERLAPPEDWINDOW,
+	//WS_CLIPCHILDREN 父窗口不对子窗口区域进行绘制 解决闪烁问题
+   HWND hWnd = CreateWindowW(WINDOWCLASSNAME, NULL, WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN,
       CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, nullptr, nullptr, hInstance, nullptr);
 
    if (!hWnd)
@@ -113,11 +114,6 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 //
 //  目标: 处理主窗口的消息。
 //
-//  WM_COMMAND  - 处理应用程序菜单
-//  WM_PAINT    - 绘制主窗口
-//  WM_DESTROY  - 发送退出消息并返回
-//
-//
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	return msgHandler->MainWndProc(hInst,hWnd,message,wParam,lParam);
@@ -127,6 +123,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 //  函数: InitCef(HINSTANCE)
 //
 //  目标: 初始化Cef。
+//
+//  注释:
+//
+//		  multi_threaded_message_loop设置多进程
+//		  cache_path设置缓存路径
 //
 BOOL InitCef(HINSTANCE hInstance)
 {

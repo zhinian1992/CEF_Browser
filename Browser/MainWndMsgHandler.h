@@ -9,7 +9,7 @@ public:
 	~MainWndMsgHandler();
 
 	/* browser window message handler*/
-	LRESULT CALLBACK MainWndProc(HINSTANCE hInst,HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
+	LRESULT MainWndProc(HINSTANCE hInst,HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
 private:
 	void CommandMsgHandler(HINSTANCE hInst,HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
@@ -24,6 +24,6 @@ private:
 
 	void DestroyMsgHandler(HINSTANCE hInst,HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
-	void CreateNewPage(HINSTANCE hInst,HWND hWnd);
+	void CreateBrowserPage(HINSTANCE hInst,HWND hWnd);
 };
 
