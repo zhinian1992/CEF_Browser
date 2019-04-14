@@ -21,6 +21,7 @@
 // 在此处引用程序需要的其他标头
 #include <strsafe.h>
 #include <shlobj.h>
+#include <assert.h>
 
 /*cef headers*/
 #include "include\cef_app.h"
@@ -35,3 +36,10 @@
 #pragma comment(lib, "lib/Release/libcef.lib")
 #pragma comment(lib, "lib/Release/libcef_dll_wrapper.lib")
 #endif
+
+
+
+#define LEFTEXTENDWIDTH		0
+#define RIGHTEXTENDWIDTH	0
+#define BOTTOMEXTENDWIDTH	0
+#define TOPEXTENDWIDTH		25  //客户区上限高度

@@ -107,8 +107,6 @@ public:
 private:
 	HWND m_hWnd; //接收消息的句柄
 
-	bool _is_DevTools_open;
-
 	CefRefPtr<CefBrowser> m_browser;
 	
 	// Include the default reference counting implementation.

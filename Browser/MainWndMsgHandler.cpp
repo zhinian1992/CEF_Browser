@@ -1,22 +1,19 @@
 #include "stdafx.h"
 #include "resource.h"
 #include "MainWndMsgHandler.h"
+#include "SinglePageWnd.h"
+#include <windows.h>
 #include <dwmapi.h>
 #include <map>
+#include <vector>
 #include <string>
 #include <functional>
 
 using namespace std;
 
-#define LEFTEXTENDWIDTH 0
-#define RIGHTEXTENDWIDTH 0
-#define BOTTOMEXTENDWIDTH 0
-#define TOPEXTENDWIDTH 25
-
-// 全局变量:
-CefRefPtr<CCefHandler> m_CefHandler;
-typedef bool (MainWndMsgHandler::*pMsgHandler)(HINSTANCE hInst,HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
-map<int, pMsgHandler> m_FuncMap;
+typedef void (MainWndMsgHandler::*pMsgHandler)(HINSTANCE hInst,HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
+map<int, pMsgHandler> m_FuncMap;		//消息处理map
+vector<SinglePageWnd *> m_PageList;		//页面集合
 
 
 MainWndMsgHandler::MainWndMsgHandler()
@@ -27,7 +24,6 @@ MainWndMsgHandler::MainWndMsgHandler()
 	m_FuncMap.insert(make_pair(WM_SIZE, &MainWndMsgHandler::SizeMsgHandler));
 	m_FuncMap.insert(make_pair(WM_ACTIVATE, &MainWndMsgHandler::ActivateMsgHandler));
 	m_FuncMap.insert(make_pair(WM_DESTROY, &MainWndMsgHandler::DestroyMsgHandler));
-
 }
 
 
@@ -68,7 +64,7 @@ INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
     return (INT_PTR)FALSE;
 }
 
-bool MainWndMsgHandler::CommandMsgHandler(HINSTANCE hInst, HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+void MainWndMsgHandler::CommandMsgHandler(HINSTANCE hInst, HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	int wmId = LOWORD(wParam);
     // 分析菜单选择:
@@ -81,13 +77,14 @@ bool MainWndMsgHandler::CommandMsgHandler(HINSTANCE hInst, HWND hWnd, UINT messa
         DestroyWindow(hWnd);
         break;
     default:
-        return DefWindowProc(hWnd, message, wParam, lParam);
+        DefWindowProc(hWnd, message, wParam, lParam);
+		return;
 	}
 
-	return true;
+	return;
 }
 
-bool MainWndMsgHandler::ActivateMsgHandler(HINSTANCE hInst, HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+void MainWndMsgHandler::ActivateMsgHandler(HINSTANCE hInst, HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	//extend the frame into the client area
 	MARGINS margins;
@@ -105,58 +102,61 @@ bool MainWndMsgHandler::ActivateMsgHandler(HINSTANCE hInst, HWND hWnd, UINT mess
 		
 	}
 
-	return true;
+	return;
 }
 
-bool MainWndMsgHandler::SizeMsgHandler(HINSTANCE hInst, HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+void MainWndMsgHandler::SizeMsgHandler(HINSTANCE hInst, HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-	if (wParam == SIZE_MINIMIZED
-		|| m_CefHandler == NULL
-		|| m_CefHandler->GetBrowserHostWnd() == NULL)
-		return false;
+	OutputDebugStringA("SizeMsgHandler");
 
 	RECT rect;
 	::GetWindowRect(hWnd,&rect);
-	::SetWindowPos(m_CefHandler->GetBrowserHostWnd(),NULL,
-		0, TOPEXTENDWIDTH, rect.right - rect.left, rect.bottom - rect.top - TOPEXTENDWIDTH, SWP_SHOWWINDOW);
 
-	return true;
+	vector<SinglePageWnd *>::iterator iter;
+	for(iter = m_PageList.begin();iter != m_PageList.end();++iter)
+	{
+		(*iter)->WndSizeChanged(rect, wParam);
+	}
+
+	return;
 }
 
-bool MainWndMsgHandler::PaintMsgHandler(HINSTANCE hInst, HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+void MainWndMsgHandler::PaintMsgHandler(HINSTANCE hInst, HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	PAINTSTRUCT ps;
 	HDC hdc = BeginPaint(hWnd, &ps);
 	// TODO: 在此处添加使用 hdc 的任何绘图代码...
 	EndPaint(hWnd, &ps);
 
-	return true;
+	return;
 }
 
-bool MainWndMsgHandler::CreateMsgHandler(HINSTANCE hInst, HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+void MainWndMsgHandler::CreateMsgHandler(HINSTANCE hInst, HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-	CreateBrowser(hWnd);
+	OutputDebugStringA("CreateMsgHandler");
 
-	return true;
+	CreateNewPage(hInst,hWnd);
+
+	return;
 }
 
-bool MainWndMsgHandler::DestroyMsgHandler(HINSTANCE hInst, HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+void MainWndMsgHandler::DestroyMsgHandler(HINSTANCE hInst, HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	PostQuitMessage(0);
 
-	return true;
+	return;
 }
 
-void MainWndMsgHandler::CreateBrowser(HWND hWnd)
+void MainWndMsgHandler::CreateNewPage(HINSTANCE hInst,HWND hWnd)
 {
-	m_CefHandler = new CCefHandler();
-	if(m_CefHandler != NULL)
-	{
-		RECT rect;
-		::GetClientRect(hWnd, &rect);
-		rect.top += TOPEXTENDWIDTH;
-		std::string sURL = "www.baidu.com";
-		CefString cURL = sURL;
-		m_CefHandler->CreateBrowser(hWnd, rect, cURL);
-	}
+	RECT rect;
+	::GetWindowRect(hWnd,&rect);
+
+	string sURL = "www.baidu.com";
+	SinglePageWnd *pageWnd = new SinglePageWnd(hInst,hWnd,
+		rect.right - rect.left,rect.bottom - rect.top,sURL);
+
+	m_PageList.push_back(pageWnd);
+
+	return;
 }

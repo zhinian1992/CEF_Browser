@@ -11,6 +11,7 @@
 
 // 全局变量:
 HINSTANCE hInst;                                // 当前实例
+MainWndMsgHandler *msgHandler;
 
 
 // 此代码模块中包含的函数的前向声明:
@@ -31,6 +32,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     // TODO: 在此处放置代码。
 	if(!InitCef(hInstance))
 		return 0;
+
+	msgHandler = new MainWndMsgHandler();
 	
     MyRegisterClass(hInstance);
 
@@ -117,8 +120,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 //
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-	MainWndMsgHandler msgHandler;
-	return msgHandler.MainWndProc(hInst,hWnd,message,wParam,lParam);
+	return msgHandler->MainWndProc(hInst,hWnd,message,wParam,lParam);
 }
 
 //

@@ -5,7 +5,6 @@
 
 
 CCefHandler::CCefHandler()
-	:_is_DevTools_open(false)
 {
  
 }
@@ -70,13 +69,6 @@ bool CCefHandler::OnKeyEvent(CefRefPtr<CefBrowser> browser, const CefKeyEvent& e
 	}
 	else if (event.type == KEYEVENT_RAWKEYDOWN && event.windows_key_code == 123)
 	{
-		if (_is_DevTools_open)
-		{
-			_is_DevTools_open = false;
-			browser->GetHost()->CloseDevTools();
-			return true;
-		}
-		_is_DevTools_open = true;
 		CefWindowInfo windowInfo;
 		CefBrowserSettings settings;
 		RECT rc = { 0,0,800,600 };
