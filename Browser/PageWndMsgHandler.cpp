@@ -1,14 +1,13 @@
-#include "stdafx.h"
+Ôªø#include "stdafx.h"
 #include "PageWndMsgHandler.h"
 #include <map>
 #include <string>
 #include <functional>
 
-
 using namespace std;
 
-typedef void (PageWndMsgHandler::*pMsgHandler)(HINSTANCE hInst,HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
-map<int, pMsgHandler> m_FuncMap;		//œ˚œ¢¥¶¿Ìmap
+typedef int (PageWndMsgHandler::*pMsgHandler)(HINSTANCE hInst,HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
+map<int, pMsgHandler> m_FuncMap;		//Ê∂àÊÅØÂ§ÑÁêÜmap
 CefRefPtr<CCefHandler> m_CefHandler;
 
 PageWndMsgHandler::PageWndMsgHandler(HWND parientHWnd,std::string sURL)
@@ -33,50 +32,50 @@ LRESULT PageWndMsgHandler::PageWndProc(HINSTANCE hInst, HWND hWnd, UINT message,
 	{
 		if (it->first == message)
 		{
-			(this->*(it->second))(hInst, hWnd, message, wParam, lParam);
-			return 0;
+			return (this->*(it->second))(hInst, hWnd, message, wParam, lParam);
 		}
 	}
 	return DefWindowProc(hWnd, message, wParam, lParam);
 }
 
 //
-//  ∫Ø ˝: CreateMsgHandler(HINSTANCE,HWND,UINT,WPARAM,LPARAM)
+//  ÂáΩÊï∞: CreateMsgHandler(HINSTANCE,HWND,UINT,WPARAM,LPARAM)
 //
-//  ƒø±Í: –¬¥∞ø⁄¥¥Ω®œ˚œ¢œÏ”¶∫Ø ˝°£
+//  ÁõÆÊ†á: Êñ∞Á™óÂè£ÂàõÂª∫Ê∂àÊÅØÂìçÂ∫îÂáΩÊï∞„ÄÇ
 //
-void PageWndMsgHandler::CreateMsgHandler(HINSTANCE hInst, HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+int PageWndMsgHandler::CreateMsgHandler(HINSTANCE hInst, HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	CreateBrowserPage(hWnd);
 
-	return;
+	return 0;
 }
 
 //
-//  ∫Ø ˝: PaintMsgHandler(HINSTANCE,HWND,UINT,WPARAM,LPARAM)
+//  ÂáΩÊï∞: PaintMsgHandler(HINSTANCE,HWND,UINT,WPARAM,LPARAM)
 //
-//  ƒø±Í: ¥∞ø⁄ªÊ÷∆œ˚œ¢œÏ”¶∫Ø ˝°£
+//  ÁõÆÊ†á: Á™óÂè£ÁªòÂà∂Ê∂àÊÅØÂìçÂ∫îÂáΩÊï∞„ÄÇ
 //
-void PageWndMsgHandler::PaintMsgHandler(HINSTANCE hInst, HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+int PageWndMsgHandler::PaintMsgHandler(HINSTANCE hInst, HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	PAINTSTRUCT ps;
 	HDC hdc = BeginPaint(hWnd, &ps);
-	// TODO: ‘⁄¥À¥¶ÃÌº” π”√ hdc µƒ»Œ∫ŒªÊÕº¥˙¬Î...
+	// TODO: Âú®Ê≠§Â§ÑÊ∑ªÂä†‰ΩøÁî® hdc ÁöÑ‰ªª‰ΩïÁªòÂõæ‰ª£Á†Å...
+
 	EndPaint(hWnd, &ps);
 
-	return;
+	return 0;
 }
 
 //
-//  ∫Ø ˝: SizeMsgHandler(HINSTANCE,HWND,UINT,WPARAM,LPARAM)
+//  ÂáΩÊï∞: SizeMsgHandler(HINSTANCE,HWND,UINT,WPARAM,LPARAM)
 //
-//  ƒø±Í: ¥∞ø⁄¥Û–°∏ƒ±‰œ˚œ¢œÏ”¶∫Ø ˝°£
+//  ÁõÆÊ†á: Á™óÂè£Â§ßÂ∞èÊîπÂèòÊ∂àÊÅØÂìçÂ∫îÂáΩÊï∞„ÄÇ
 //
-//  ◊¢ Õ:
+//  Ê≥®Èáä:
 //
-//		  ‘⁄¥À∫Ø ˝÷–¥∞ÃÂ¥Û–°∏ƒ±‰ ±∏ƒ±‰◊”¥∞ÃÂ¥Û–°
+//		  Âú®Ê≠§ÂáΩÊï∞‰∏≠Á™ó‰ΩìÂ§ßÂ∞èÊîπÂèòÊó∂ÊîπÂèòÂ≠êÁ™ó‰ΩìÂ§ßÂ∞è
 //
-void PageWndMsgHandler::SizeMsgHandler(HINSTANCE hInst, HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+int PageWndMsgHandler::SizeMsgHandler(HINSTANCE hInst, HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	RECT rect;
 	::GetClientRect(hWnd, &rect);
@@ -87,27 +86,31 @@ void PageWndMsgHandler::SizeMsgHandler(HINSTANCE hInst, HWND hWnd, UINT message,
 	if (wParam == SIZE_MINIMIZED
 		|| m_CefHandler == NULL
 		|| m_CefHandler->GetBrowserHostWnd() == NULL)
-		return;
+		return 0;
 
 	::SetWindowPos(m_CefHandler->GetBrowserHostWnd(),NULL,
 		0, 0, m_Width, m_Height, SWP_SHOWWINDOW);
 
-	return;
+	return 0;
 }
 
 //
-//  ∫Ø ˝: DestroyMsgHandler(HINSTANCE,HWND,UINT,WPARAM,LPARAM)
+//  ÂáΩÊï∞: DestroyMsgHandler(HINSTANCE,HWND,UINT,WPARAM,LPARAM)
 //
-//  ƒø±Í: ¥∞ø⁄œ˙ªŸœ˚œ¢œÏ”¶∫Ø ˝°£
+//  ÁõÆÊ†á: Á™óÂè£ÈîÄÊØÅÊ∂àÊÅØÂìçÂ∫îÂáΩÊï∞„ÄÇ
 //
-void PageWndMsgHandler::DestroyMsgHandler(HINSTANCE hInst, HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+int PageWndMsgHandler::DestroyMsgHandler(HINSTANCE hInst, HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	PostQuitMessage(0);
 
-	return;
+	return 0;
 }
 
-
+//
+//  ÂáΩÊï∞: CreateBrowserPage(HWND)
+//
+//  ÁõÆÊ†á: ÂàõÂª∫ÊµèËßàÂô®È°µÈù¢ÂáΩÊï∞„ÄÇ
+//
 void PageWndMsgHandler::CreateBrowserPage(HWND hWnd)
 {
 	m_CefHandler = new CCefHandler();
@@ -119,3 +122,5 @@ void PageWndMsgHandler::CreateBrowserPage(HWND hWnd)
 		m_CefHandler->CreateBrowser(hWnd, rect, cURL);
 	}
 }
+
+

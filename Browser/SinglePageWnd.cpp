@@ -74,11 +74,11 @@ void SinglePageWnd::WndSizeChanged(RECT rect,WPARAM wParam)
 	if (wParam == SIZE_MINIMIZED)
 		return;
 
-	m_Width = rect.right - (rect.left < 0? -rect.left:rect.left);
-	m_Height = rect.bottom - (rect.top < 0? -rect.top:rect.top) - TOPEXTENDWIDTH;
+	m_Width = rect.right - rect.left;
+	m_Height = rect.bottom - rect.top;
 
 	::SetWindowPos(m_hWnd,NULL,
-		0, TOPEXTENDWIDTH, m_Width, m_Height, SWP_SHOWWINDOW);
+		LEFTEXTENDWIDTH, TOPEXTENDWIDTH, m_Width, m_Height, SWP_SHOWWINDOW);
 
 	return;
 }
