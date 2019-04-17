@@ -6,6 +6,7 @@
 #include "include\cef_app.h"
 #include "cef\CefHandler.h"
 #include "cef\MyCefApp.h"
+#include "ConfigOperator.h"
 #include <strsafe.h>
 #include <shlobj.h>
 
@@ -24,6 +25,7 @@ HINSTANCE hInst;                                // 当前实例
 WCHAR szTitle[MAX_LOADSTRING];                  // 标题栏文本
 WCHAR szWindowClass[MAX_LOADSTRING];            // 主窗口类名
 CefRefPtr<CCefHandler> g_handler;
+ConfigOperator con;
 
 // 此代码模块中包含的函数的前向声明:
 ATOM                MyRegisterClass(HINSTANCE hInstance);
@@ -171,9 +173,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			g_handler = new CCefHandler();
 			RECT rect;
 			::GetClientRect(hWnd, &rect);
-			std::string sURL = "www.baidu.com";
-			CefString cURL = sURL;
-			g_handler->CreateBrowser(hWnd, rect, cURL);
+			char cURL[128] = {};
+			std::string sURL;
+			if (con.GetConfigValue(HOMEURL, cURL) != 0)
+				sURL = "www.baidu.com";
+			else
+				sURL = cURL;
+			CefString cefURL = sURL;
+			g_handler->CreateBrowser(hWnd, rect, cefURL);
 		}
 		break;
     case WM_PAINT:
