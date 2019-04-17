@@ -8,6 +8,7 @@
 #include <string>
 #include <functional>
 #include <uxtheme.h>
+#include <vssym32.h>
 
 using namespace std;
 
@@ -329,13 +330,14 @@ void MainWndMsgHandler::PaintCustomCaption(HWND hWnd, HDC hdc)
 
                 // Setup the theme drawing options.
                 DTTOPTS DttOpts = {sizeof(DTTOPTS)};
-                DttOpts.dwFlags = DTT_COMPOSITED | DTT_GLOWSIZE;
+                DttOpts.dwFlags = DTT_COMPOSITED | DTT_GLOWSIZE | DTT_TEXTCOLOR ;
+				DttOpts.crText = RGB(0x00,0x00,0xCD);
                 DttOpts.iGlowSize = 15;
 
                 // Select a font.
                 LOGFONT lgFont;
                 HFONT hFontOld = NULL;
-                if (SUCCEEDED(GetThemeSysFont(hTheme, 801, &lgFont)))
+                if (SUCCEEDED(GetThemeSysFont(hTheme, TMT_CAPTIONFONT, &lgFont)))
                 {
                     HFONT hFont = CreateFontIndirect(&lgFont);
                     hFontOld = (HFONT) SelectObject(hdcPaint, hFont);
@@ -352,7 +354,7 @@ void MainWndMsgHandler::PaintCustomCaption(HWND hWnd, HDC hdc)
                                 0, 0, 
                                 L"browser", 
                                 -1, 
-                                DT_LEFT | DT_WORD_ELLIPSIS, 
+                                DT_LEFT | DT_WORD_ELLIPSIS | DT_SINGLELINE | DT_VCENTER | DT_NOPREFIX, 
                                 &rcPaint, 
                                 &DttOpts);
 
